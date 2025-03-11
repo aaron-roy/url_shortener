@@ -42,3 +42,7 @@ url_shortener/
    ```bash
    python3 test.py
    ```
+
+
+### Notes
+- I used SQLite3 because of its ease of setup, low resource usage, and the ability to programatically start up and shut down the db. In a production enviroment I would use PostgreSQL to ensure concurrency, ACID compliance, scalability, and backup/recovery. 
