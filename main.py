@@ -1,7 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
 from contextlib import asynccontextmanager
-from utils import create_db, db_insert, find_long_url, get_url_map
+from utils import create_db, db_insert, find_long_url, get_url_map, increment_clicks
 import os
 from pydantic import BaseModel
 import logging
@@ -60,9 +60,28 @@ def shorten(request: URLRequest):
 
     return {"shortened_url": shortened_url}
 
+@app.get("/retrieve/")
+def retrieve(request: URLRequest):
+    url = request.url
+    extention = url.split('/')[-1]
+
+    new_url = find_long_url(extention, app.state.db_connection)
+
+    if new_url == "Short URL not found":
+        raise HTTPException(status_code=404, detail="Short URL not found") 
+    
+    logger.info(f"redirect url: {new_url}")
+    return {"original_url": new_url}
+
+
 @app.get("/{str}")
-def obtain_original(str):
+def redirect(str):
     new_url = find_long_url(str, app.state.db_connection)
+    
+    if new_url == "Short URL not found":
+        raise HTTPException(status_code=404, detail="Short URL not found") 
+    
+    increment_clicks(str, app.state.db_connection)
     logger.info(f"redirect url: {new_url}")
     return RedirectResponse(url=new_url)
 

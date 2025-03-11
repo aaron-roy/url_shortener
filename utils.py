@@ -94,28 +94,47 @@ def find_long_url(short_url, db_connection):
 
     try:
         # Query to check if the short_url exists in the table
-        cursor.execute("SELECT long_url, clicks FROM url_map WHERE short_url = ?", (short_url,))
+        cursor.execute("SELECT long_url FROM url_map WHERE short_url = ?", (short_url,))
         result = cursor.fetchone()
 
         # If result is found, increment clicks and return the long_url
         if result:
             # Extract long_url and clicks count from the result
-            long_url, clicks = result
+            long_url = result[0]
 
-            # Increment the clicks count by 1
+            return long_url  # Return the long_url after incrementing clicks
+        else:
+            return "Short URL not found"  # Or return None 
+    
+    except sqlite3.Error as e:
+        # Handle database errors
+        return f"An error occurred: {e}"
+    
+def increment_clicks(short_url, db_connection):
+    cursor = db_connection.cursor()
+
+    try:
+        # Query to check if the short_url exists in the table
+        cursor.execute("SELECT clicks FROM url_map WHERE short_url = ?", (short_url,))
+        result = cursor.fetchone()
+
+        # If result is found, increment clicks
+        if result:
+            clicks = result[0]
             new_clicks = clicks + 1
 
             # Update the clicks count in the database
             cursor.execute("UPDATE url_map SET clicks = ? WHERE short_url = ?", (new_clicks, short_url))
             db_connection.commit()  # Commit the changes
 
-            return long_url  # Return the long_url after incrementing clicks
         else:
-            return "Short URL not found"  # Or return None or any other message
-    
+            return "Short URL not found"  # Or return None 
+
     except sqlite3.Error as e:
         # Handle database errors
         return f"An error occurred: {e}"
+
+
     
 def get_url_map(db_connection):
     cursor = db_connection.cursor()

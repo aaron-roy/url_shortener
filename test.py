@@ -25,12 +25,19 @@ def main():
         if user_input == "C":
             response = requests.get(f'{api_base_url}/url_map/')
             pretty_print_url_map(response.json())
+        elif user_input.startswith(api_base_url):
+            print(user_input)
+            response = requests.get(
+                f'{api_base_url}/retrieve/',  # POST to the correct endpoint
+                json={"url": user_input}  # Pass the URL in the JSON body
+            )
+            print(f"Original URL: {response.json()['original_url']}\n")
         else:
             response = requests.post(
                 f'{api_base_url}/shorten/',  # POST to the correct endpoint
                 json={"url": user_input}  # Pass the URL in the JSON body
             )
-            print(f"Shortened URL: {response.json()['shortened_url']}")
+            print(f"Shortened URL: {response.json()['shortened_url']}\n")
         user_input = input("Please enter a URL (Enter nothing to quit or C to see Clicks): ")
         
 
